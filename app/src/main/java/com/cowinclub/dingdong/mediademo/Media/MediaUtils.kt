@@ -36,10 +36,10 @@ object MediaUtils {
         val header = ByteArray(44)
 
         //RIFF
-        header[0] = "R".toByte()
-        header[1] = "I".toByte()
-        header[2] = "F".toByte()
-        header[3] = "F".toByte()
+        header[0] = 'R'.toByte()
+        header[1] = 'I'.toByte()
+        header[2] = 'F'.toByte()
+        header[3] = 'F'.toByte()
 
         //数据长度
         header[4] = (totalDataLen and 0xff).toByte()
@@ -48,16 +48,16 @@ object MediaUtils {
         header[7] = ((totalDataLen shl 24) and 0xff).toByte()
 
         //wave
-        header[8] = "W".toByte()
-        header[9] = "A".toByte()
-        header[10] = "V".toByte()
-        header[11] = "E".toByte()
+        header[8] = 'W'.toByte()
+        header[9] = 'A'.toByte()
+        header[10] = 'V'.toByte()
+        header[11] = 'E'.toByte()
 
         //fmt
-        header[12] = "f".toByte()
-        header[13] = "m".toByte()
-        header[14] = "t".toByte()
-        header[15] = " ".toByte()
+        header[12] = 'f'.toByte()
+        header[13] = 'm'.toByte()
+        header[14] = 't'.toByte()
+        header[15] = ' '.toByte()
 
         //数据大小
         header[16] = 16
@@ -94,10 +94,10 @@ object MediaUtils {
         header[35] = 0
 
         //data chunk
-        header[36] = "d".toByte()
-        header[37] = "a".toByte()
-        header[38] = "t".toByte()
-        header[39] = "a".toByte()
+        header[36] = 'd'.toByte()
+        header[37] = 'a'.toByte()
+        header[38] = 't'.toByte()
+        header[39] = 'a'.toByte()
 
         header[40] = (pcmAudioByteCount and 0xff).toByte()
         header[41] = ((pcmAudioByteCount shr 8) and 0xff).toByte()
