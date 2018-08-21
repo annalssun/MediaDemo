@@ -1,4 +1,4 @@
-package com.cowinclub.dingdong.mediademo.video
+package com.cowinclub.dingdong.mediademo.takePicture
 
 import android.annotation.TargetApi
 import android.os.Build
