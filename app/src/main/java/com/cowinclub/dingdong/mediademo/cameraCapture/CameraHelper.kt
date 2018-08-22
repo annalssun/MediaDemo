@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.cowinclub.dingdong.mediademo.video
+package com.cowinclub.dingdong.mediademo.cameraCapture
 
 import android.annotation.TargetApi
 import android.hardware.Camera

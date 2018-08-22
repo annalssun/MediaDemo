@@ -14,7 +14,7 @@ import android.view.SurfaceHolder
 import java.util.concurrent.Semaphore
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraManageContoller {
+class MediaRecordCameraController {
     private lateinit var mCameraManager: CameraManager
     private lateinit var mCameraId: String
     private var mFlashSupported = false

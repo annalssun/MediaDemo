@@ -1,4 +1,4 @@
-package com.cowinclub.dingdong.mediademo.takePicture
+package com.cowinclub.dingdong.mediademo.Came2Capture
 
 import android.annotation.TargetApi
 import android.os.Build

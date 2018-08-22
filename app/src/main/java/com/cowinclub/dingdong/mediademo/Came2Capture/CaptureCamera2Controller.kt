@@ -1,10 +1,11 @@
-package com.cowinclub.dingdong.mediademo.takePicture
+package com.cowinclub.dingdong.mediademo.Came2Capture
 
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
@@ -16,18 +17,15 @@ import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
-import android.view.SurfaceHolder
 import android.view.TextureView
 import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class CaptureCameraController(var context: Context,
-                              var surfaceHolder: SurfaceHolder,
-                              var textureView: TextureView) {
-    private lateinit var mCameraManager: CameraManager
+class CaptureCamera2Controller(private var context: Context,
+                               private var textureView: AutoFitTextureView) {
+    private var mCameraManager: CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private lateinit var mCameraID: String
 
     /**
@@ -67,10 +65,6 @@ class CaptureCameraController(var context: Context,
     private var MAX_PREVIEW_WIDTH = 1080
     private var MAX_PREVIEW_HEIGHT = 1920
 
-    init {
-        mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    }
-
     /**
      * This a callback object for the [ImageReader]. "onImageAvailable" will be called when a
      * still image is ready to be saved.
@@ -90,6 +84,8 @@ class CaptureCameraController(var context: Context,
         }
 
         override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
+            closeCamera()
+            closeBackGroundThread()
             return true
         }
 
@@ -166,7 +162,7 @@ class CaptureCameraController(var context: Context,
         }
     }
 
-    fun openCamera(width: Int, height: Int) {
+    private fun openCamera(width: Int, height: Int) {
         val permission = ContextCompat.checkSelfPermission((context as Activity), Manifest.permission.CAMERA)
         if (permission != PackageManager.PERMISSION_GRANTED) {
             return
@@ -175,10 +171,12 @@ class CaptureCameraController(var context: Context,
         configureTransform(width, height)
 
         try {
-            if (mCameraOpenSemaphore.tryAcquire(2500, TimeUnit.SECONDS))
-                throw RuntimeException("Time out waiting to lock camera opening.")
+//            if (mCameraOpenSemaphore.tryAcquire(5000, TimeUnit.SECONDS))
+//                throw RuntimeException("Time out waiting to lock camera opening.")
             mCameraManager.openCamera(mCameraID, mCameraDeviceStateCallback, backgroundHandler)
         } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        }catch (e:Exception){
             e.printStackTrace()
         }
     }
@@ -226,12 +224,12 @@ class CaptureCameraController(var context: Context,
                         maxPreviewWidth, maxPreviewHeight,
                         largest)
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
-//                if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//                    textureView.setAspectRatio(previewSize.width, previewSize.height)
-//                    textureView.
-//                } else {
-//                    textureView.setAspectRatio(previewSize.height, previewSize.width)
-//                }
+                if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    textureView.setAspectRatio(previewSize.width, previewSize.height)
+
+                } else {
+                    textureView.setAspectRatio(previewSize.height, previewSize.width)
+                }
 
                 mSupportFlash = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
                 this.mCameraID = cameraID
@@ -271,7 +269,7 @@ class CaptureCameraController(var context: Context,
      * @param viewHeight The height of `textureView`
      */
 
-    fun configureTransform(viewWidth: Int, viewHeight: Int) {
+    private fun configureTransform(viewWidth: Int, viewHeight: Int) {
         val rotation = (context as Activity).windowManager.defaultDisplay.rotation
         val matrix = Matrix()
         val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
@@ -417,7 +415,7 @@ class CaptureCameraController(var context: Context,
     /**
      * Lock the focus as the first step for a still image capture.
      */
-    private fun lockFocus() {
+    fun lockFocus() {
         try {
             // This is how to tell the camera to lock focus.
             mPreViewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER,

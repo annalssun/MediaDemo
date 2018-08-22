@@ -1,6 +1,7 @@
-package com.cowinclub.dingdong.mediademo.video
+package com.cowinclub.dingdong.mediademo.cameraCapture
 
 import android.content.Context
+import android.content.res.Configuration
 import android.hardware.Camera
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -16,7 +17,14 @@ class SurfaceCameraPreView(context: Context) : SurfaceView(context), SurfaceHold
         addCallback(this@SurfaceCameraPreView)
     }
     private var mCamera: Camera? = null
+    private var mFrameCount = 0
 
+    private val mCameraPreviewCallback = object : Camera.PreviewCallback {
+        override fun onPreviewFrame(data: ByteArray?, camera: Camera?) {
+            mFrameCount++
+        }
+
+    }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
         if (mSurfaceHolder.surface == null) {
@@ -29,16 +37,26 @@ class SurfaceCameraPreView(context: Context) : SurfaceView(context), SurfaceHold
             e.printStackTrace()
         }
 
+        var parameters = mCamera?.parameters
+
+        if (this.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            mCamera?.setDisplayOrientation(90)
+        } else {
+            mCamera?.setDisplayOrientation(0)
+        }
+
         mCamera.apply {
             try {
                 this?.setPreviewDisplay(mSurfaceHolder)
+                this?.setPreviewCallback(mCameraPreviewCallback)
                 this?.startPreview()
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
 
-        getCameraOptimalVideoSize()
+//        getCameraOptimalVideoSize()
     }
 
     private fun getCameraOptimalVideoSize() {
@@ -69,7 +87,7 @@ class SurfaceCameraPreView(context: Context) : SurfaceView(context), SurfaceHold
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
-        mCamera = CameraUtils.getCameraInstance()
+        mCamera = CameraManageController.instance.openCamera()
         mCamera.apply {
             try {
                 this?.setPreviewDisplay(mSurfaceHolder)
@@ -78,11 +96,16 @@ class SurfaceCameraPreView(context: Context) : SurfaceView(context), SurfaceHold
                 e.printStackTrace()
             }
         }
-        try {
-            getCameraOptimalVideoSize()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+//        try {
+//            getCameraOptimalVideoSize()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+    }
+
+
+    fun setCamera(camera: Camera) {
+        this.mCamera = camera
     }
 
 }
