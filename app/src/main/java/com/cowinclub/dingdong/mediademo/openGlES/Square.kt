@@ -10,10 +10,10 @@ class Square {
 
 
     private var vertices: FloatArray = floatArrayOf(
-            1.0f, 1.0f, 0.0f,  // 0, Top Left
+            -1.0f,  1.0f, 0.0f,  // 0, Top Left
             -1.0f, -1.0f, 0.0f,  // 1, Bottom Left
             1.0f, -1.0f, 0.0f,  // 2, Bottom Right
-            1.0f, 1.0f, 0.0f  // 3, Top Right
+            1.0f,  1.0f, 0.0f   // 3, Top Right
     )
     //定点顺序
     private var indices = shortArrayOf(0, 1, 2, 0, 2, 3)
@@ -46,30 +46,27 @@ class Square {
     fun draw(gl: GL10?) {
         try {
 
-            gl?.glLoadIdentity()
-            //逆时针
-            gl?.glFrontFace(GL10.GL_CCW)
-            //开启面裁剪
-            gl?.glEnable(GL10.GL_CULL_FACE)
-            //指定要被裁剪的面
-            gl?.glCullFace(GL10.GL_BACK)
+            // Counter-clockwise winding.
+            gl?.glFrontFace(GL10.GL_CCW);
+            // Enable face culling.
+            gl?.glEnable(GL10.GL_CULL_FACE);
+            // What faces to remove with the face culling.
+            gl?.glCullFace(GL10.GL_BACK);
 
-            //开启定点数组，一边我们读写定点信息
-            gl?.glEnableClientState(GL10.GL_VERTEX_ARRAY)
-
-            //指定顶点坐标数据的位置和格式
-            gl?.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer)
-//            gl?.glDrawElements(GL10.GL_TRIANGLES, indices.size,
-//                    GL10.GL_UNSIGNED_SHORT, indexBuffer)
+            // Enabled the vertices buffer for writing and to be used during
+            // rendering.
+            gl?.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+            // Specifies the location and data format of an array of vertex
+            // coordinates to use when rendering.
+            gl?.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
 
             gl?.glDrawElements(GL10.GL_TRIANGLES, indices.size,
-                    GL10.GL_UNSIGNED_SHORT, indexBuffer)
+                    GL10.GL_UNSIGNED_SHORT, indexBuffer);
 
-            gl?.glDisableClientState(GL10.GL_VERTEX_ARRAY)
-            gl?.glDisable(GL10.GL_CULL_FACE)
-
-            gl?.glTranslatex(0, 0, -4)
-            gl?.glLoadIdentity()
+            // Disable the vertices buffer.
+            gl?.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+            // Disable face culling.
+            gl?.glDisable(GL10.GL_CULL_FACE);
         } catch (e: Exception) {
             e.printStackTrace()
         }

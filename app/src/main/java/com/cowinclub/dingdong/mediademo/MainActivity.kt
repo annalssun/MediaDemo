@@ -3,6 +3,7 @@ package com.cowinclub.dingdong.mediademo
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.WindowManager
 import com.cowinclub.dingdong.mediademo.Came2Capture.CaptureCamera2Controller
 import com.cowinclub.dingdong.mediademo.Media.WindEar
 import com.cowinclub.dingdong.mediademo.openGlES.MyRender
@@ -13,6 +14,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var camera2Controller: CaptureCamera2Controller
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN)
         val view = GLSurfaceView(this)
         view.setRenderer(MyRender())
         setContentView(view)
