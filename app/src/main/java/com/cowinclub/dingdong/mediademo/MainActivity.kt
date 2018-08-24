@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
         val view = GLSurfaceView(this)
-        view.setRenderer(MyRender())
+        view.setRenderer(MyRender(this))
         setContentView(view)
 //        var autoFitTextureView = findViewById<AutoFitTextureView>(R.id.textureView)
 //         camera2Controller = CaptureCamera2Controller(this, autoFitTextureView)

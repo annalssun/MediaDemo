@@ -1,29 +1,25 @@
 package com.cowinclub.dingdong.mediademo.openGlES
 
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
+import com.cowinclub.dingdong.mediademo.R
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import android.opengl.GLES10.glLoadIdentity
-import android.opengl.GLES10.glMatrixMode
-import android.R.attr.angle
-import android.opengl.GLES10.glPopMatrix
-import android.opengl.GLES10.glRotatef
-import android.opengl.GLES10.glScalef
-import android.opengl.GLES10.glTranslatef
-import android.opengl.GLES10.glPushMatrix
-import android.opengl.GLES10.glLoadIdentity
 
 
-
-
-class MyRender : GLSurfaceView.Renderer {
+class MyRender constructor(private val context: Context) : GLSurfaceView.Renderer {
 
     private var angle = 0
 
     private var square = Square()
 
+//    private var plane = Plane(4f,4f,2,2)
 
+    private var plane = Plane(2f,2f,1,1).apply {
+        loadBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.text))
+    }
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         // Sets the current view port to the new size.
         gl?.glViewport(0, 0, width, height)// OpenGL docs.
@@ -58,6 +54,21 @@ class MyRender : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
+//      moive(gl)
+        test(gl)
+    }
+
+    private fun test(gl: GL10?) {
+        gl?.glClear(GL10.GL_COLOR_BUFFER_BIT or GL10.GL_DEPTH_BUFFER_BIT)
+        // Replace the current matrix with the identity matrix
+        gl?.glLoadIdentity()
+        // Translates 10 units into the screen.
+        gl?.glTranslatef(0f, 0f, -4f)
+
+        plane.draw(gl)
+    }
+
+    private fun moive(gl: GL10?) {
         // Clears the screen and depth buffer.
         gl?.glClear(GL10.GL_COLOR_BUFFER_BIT or GL10.GL_DEPTH_BUFFER_BIT)
         // Replace the current matrix with the identity matrix

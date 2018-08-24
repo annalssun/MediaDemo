@@ -9,11 +9,18 @@ import javax.microedition.khronos.opengles.GL10
 class Square {
 
 
-    private var vertices: FloatArray = floatArrayOf(
+    private var vertices: FloatArray = floatArrayOf( //定点
             -1.0f,  1.0f, 0.0f,  // 0, Top Left
             -1.0f, -1.0f, 0.0f,  // 1, Bottom Left
             1.0f, -1.0f, 0.0f,  // 2, Bottom Right
             1.0f,  1.0f, 0.0f   // 3, Top Right
+    )
+
+    private var colors: FloatArray = floatArrayOf( //定点
+            1f,  0f, 0f,1f,  // 0, Top Left
+            0f, 1f, 0f, 1f, // 1, Bottom Left
+            0f, 0f, 1f,  1f,// 2, Bottom Right
+            1.0f,  0.0f, 1.0f,1f   // 3, Top Right
     )
     //定点顺序
     private var indices = shortArrayOf(0, 1, 2, 0, 2, 3)
@@ -23,6 +30,8 @@ class Square {
 
     //循序缓冲
     private lateinit var indexBuffer: ShortBuffer
+
+    private lateinit var colorBuffer:FloatBuffer
 
     init {
         init()
@@ -41,6 +50,13 @@ class Square {
         indexBuffer = ibb.asShortBuffer()
         indexBuffer.put(indices)
         indexBuffer.position(0)
+
+        val cbb = ByteBuffer.allocateDirect(colors.size*4)
+        cbb.order(ByteOrder.nativeOrder())
+        colorBuffer = cbb.asFloatBuffer()
+        colorBuffer.put(colors)
+        colorBuffer.position(0)
+
     }
 
     fun draw(gl: GL10?) {
@@ -59,7 +75,9 @@ class Square {
             // Specifies the location and data format of an array of vertex
             // coordinates to use when rendering.
             gl?.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
-
+            // Enable the color array buffer to be used during rendering.
+            gl?.glEnableClientState(GL10.GL_COLOR_ARRAY);
+            gl?.glColorPointer(4,GL10.GL_FLOAT,0,colorBuffer)
             gl?.glDrawElements(GL10.GL_TRIANGLES, indices.size,
                     GL10.GL_UNSIGNED_SHORT, indexBuffer);
 
