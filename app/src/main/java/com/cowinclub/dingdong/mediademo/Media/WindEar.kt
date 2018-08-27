@@ -69,7 +69,7 @@ class WindEar private constructor() {
         if (!state.equals(WindState.IDLE)) {
             return
         }
-
+        Log.i("WindEar","==============================开始录制")
         try {
             tmpPCMFile = File.createTempFile("recording", ".pcm", File(cachePCMFolder))
             if (createWare) {
@@ -88,7 +88,7 @@ class WindEar private constructor() {
                 aRecordThread = null
             }
 
-            aRecordThread = AudioRecordThread(createWare, tmpPCMFile, tmpWavFile, this, handler)
+            aRecordThread = AudioRecordThread(createWare, tmpPCMFile, tmpWavFile, this, handler,true)
             aRecordThread!!.start()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -106,14 +106,15 @@ class WindEar private constructor() {
 
     @Synchronized
     fun startPlayPcm() {
+        Log.i("WindEar","==============================开始播放")
         if (!state.equals(WindState.IDLE)) {
             return
         }
-        if (0 == tmpPCMFile.length().toInt()){
-            Log.i("WindEar","===========================tmpPCMFile长度为0")
-            return
-        }
-        aTrackPlayThread = AudioTrackPlayThread(tmpPCMFile, this, handler)
+//        if (0 == tmpPCMFile.length().toInt()){
+//            Log.i("WindEar","===========================tmpPCMFile长度为0")
+//            return
+//        }
+        aTrackPlayThread = AudioTrackPlayThread(tmpPCMFile, this, handler,true)
         aTrackPlayThread!!.start()
     }
 

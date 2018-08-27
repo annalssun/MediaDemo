@@ -20,16 +20,32 @@ class AudioTrackPlayThread() : Thread() {
     private lateinit var windEar: WindEar
     private lateinit var mHandler: Handler
 
+    private lateinit var mDecoder: AudioDecodeController
+
+    private var accType = false
 
     private var fis: FileInputStream? = null
 
-    constructor(file: File, windEar: WindEar, handler: Handler) : this() {
+    constructor(file: File, windEar: WindEar, handler: Handler, accType: Boolean) : this() {
         priority = Thread.MAX_PRIORITY
-        bufferSize = AudioTrack.getMinBufferSize(WindEar.AUDIO_FREQUENCY, WindEar.PLAY_CHANNEL_CONFIG,
-                WindEar.AUDIO_ENCODING) * WindEar.PLAY_AUDIO_BUFFER_TIMES
+
         this.audioFile = file
         this.windEar = windEar
         this.mHandler = handler
+        if (accType) {
+            this.accType = true
+            buildACCTrack()
+        } else {
+            buildDefaultTrack()
+        }
+        init()
+    }
+
+    constructor(file: File, windEar: WindEar, handler: Handler) : this(file, windEar, handler, false)
+
+    private fun buildDefaultTrack() {
+        bufferSize = AudioTrack.getMinBufferSize(WindEar.AUDIO_FREQUENCY, WindEar.PLAY_CHANNEL_CONFIG,
+                WindEar.AUDIO_ENCODING) * WindEar.PLAY_AUDIO_BUFFER_TIMES
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             track = AudioTrack.Builder()
                     .setAudioAttributes(AudioAttributes.Builder()
@@ -49,7 +65,33 @@ class AudioTrackPlayThread() : Thread() {
                     PLAY_CHANNEL_CONFIG, AUDIO_ENCODING, bufferSize,
                     AudioTrack.MODE_STREAM)
         }
-        init()
+    }
+
+    private fun buildACCTrack() {//初始化ACC解码器
+        mDecoder = AudioDecodeController()
+        bufferSize = AudioTrack.getMinBufferSize(mDecoder.sampleRate, mDecoder.changelConfig,
+                WindEar.AUDIO_ENCODING) * WindEar.PLAY_AUDIO_BUFFER_TIMES
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            track = AudioTrack.Builder()
+                    .setAudioAttributes(AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build())
+                    .setAudioFormat(AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(mDecoder.sampleRate)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                            .build())
+                    .setBufferSizeInBytes(bufferSize)
+                    .build()
+        } else {
+            track = AudioTrack(AudioManager.STREAM_MUSIC,
+                    mDecoder.sampleRate,
+                    mDecoder.changelConfig, AUDIO_ENCODING, bufferSize,
+                    AudioTrack.MODE_STREAM)
+        }
+
+        mDecoder.initAudioTrack(track)
     }
 
     private fun init() {
@@ -64,20 +106,12 @@ class AudioTrackPlayThread() : Thread() {
 
     override fun run() {
         super.run()
-        try {
-            val byteBuf = ByteArray(bufferSize)
-            track.play()
-            while (state.equals(WindEar.WindState.PLAYING) && fis!!.read(byteBuf) > 0) {
-                track.write(byteBuf, 0, byteBuf.size)
-            }
-            track.stop()
-            track.release()
-        } catch (e: Exception) {
-            notifySateChange(WindEar.WindState.ERROR)
+        if (accType){
+            mDecoder.startPlay()
+        }else{
+            palyDefault()
         }
-
-        fis!!.close()
-        state = WindEar.WindState.STOP_PLAY
+            state = WindEar.WindState.STOP_PLAY
         notifySateChange(state)
         state = WindEar.WindState.IDLE
         notifySateChange(state)
@@ -100,6 +134,22 @@ class AudioTrackPlayThread() : Thread() {
             state = WindEar.WindState.IDLE
             notifySateChange(state)
         }
+    }
+
+    private fun palyDefault() {
+        try {
+            val byteBuf = ByteArray(bufferSize)
+            track.play()
+            while (state.equals(WindEar.WindState.PLAYING) && fis!!.read(byteBuf) > 0) {
+                track.write(byteBuf, 0, byteBuf.size)
+            }
+            track.stop()
+            track.release()
+        } catch (e: Exception) {
+            notifySateChange(WindEar.WindState.ERROR)
+        }
+
+        fis!!.close()
     }
 
 

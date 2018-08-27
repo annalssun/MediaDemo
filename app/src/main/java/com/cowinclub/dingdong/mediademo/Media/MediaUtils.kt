@@ -1,5 +1,6 @@
 package com.cowinclub.dingdong.mediademo.Media
 
+import android.os.Environment
 import java.io.FileOutputStream
 
 object MediaUtils {
@@ -105,6 +106,15 @@ object MediaUtils {
         header[43] = ((pcmAudioByteCount shr 24) and 0xff).toByte()
 
         return header
+    }
+
+
+    fun getSDPath():String{
+        // 判断是否挂载
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            return Environment.getExternalStorageDirectory().absolutePath;
+        }
+        return Environment.getRootDirectory().absolutePath;
     }
 
 }
