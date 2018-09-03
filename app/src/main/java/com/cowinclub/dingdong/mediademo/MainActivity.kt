@@ -40,13 +40,23 @@ class MainActivity : AppCompatActivity() {
 //            videoRecordController.stopRecording()
 //        }
 
+
+        setContentView(R.layout.activity_main)
+
         var dm = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(dm)
-        var cameraController = OpenGLCamera2Controller(this)
+        cameraController = OpenGLCamera2Controller(this)
         cameraController.setUpCameraOutputs(dm.widthPixels, dm.heightPixels)
-        var surface = CameraGLSurfaceView(this, cameraController)
-        setContentView(surface)
+        var surface = findViewById<CameraGLSurfaceView>(R.id.textureView)
+        surface.init(cameraController)
 
+        findViewById<Button>(R.id.start_btn).setOnClickListener {
+            cameraController.startRecording()
+        }
+
+        findViewById<Button>(R.id.end_btn).setOnClickListener {
+            cameraController.stopRecording()
+        }
     }
 
     override fun onResume() {

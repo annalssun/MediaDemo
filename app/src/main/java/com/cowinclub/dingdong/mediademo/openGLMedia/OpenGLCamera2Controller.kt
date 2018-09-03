@@ -269,6 +269,7 @@ class OpenGLCamera2Controller(private var context: Context) {
         }
     }
 
+
     fun startRecording() {
         try {
             closePreviewSession()
@@ -279,6 +280,8 @@ class OpenGLCamera2Controller(private var context: Context) {
             }
 
             val previewSurface = Surface(mSurfaceTexture)
+//            mediaRecorder?.setPreviewDisplay(previewSurface)
+
             val recordSurface = mediaRecorder!!.surface
 
 

@@ -3,11 +3,14 @@ package com.cowinclub.dingdong.mediademo.openGLMedia
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
+import android.opengl.GLES11Ext.GL_TEXTURE_EXTERNAL_OES
+import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
-import android.opengl.GLU
 import com.cowinclub.dingdong.mediademo.openGLMedia.opengl.Plane
+import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+
 
 class CameraRender : GLSurfaceView.Renderer {
 
@@ -16,6 +19,15 @@ class CameraRender : GLSurfaceView.Renderer {
     private var angle = 0
     private var isPreviewState = false
     private var mSurfaceTexture: SurfaceTexture? = null
+    private val transformMatrix = FloatArray(16)
+    private var mFilterEngine: FilterEngine? = null
+    private var mDataBuffer: FloatBuffer? = null
+    private var mShaderProgram = -1
+    private var aPositionLocation = -1
+    private var aTextureCoordLocation = -1
+    private var uTextureMatrixLocation = -1
+    private var uTextureSamplerLocation = -1
+    private val mFBOIds = IntArray(1)
 
     private lateinit var mCameraGLSurfaceView: CameraGLSurfaceView
 
@@ -30,56 +42,58 @@ class CameraRender : GLSurfaceView.Renderer {
         this.mCameraController = cameraController
         this.isPreviewState = isPreviewState
         this.mCameraGLSurfaceView = cameraGLSurfaceView
-        mOESTextureId = Utils.createOESTextureObject(context)
+
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        // Sets the current view port to the new size.
         gl?.glViewport(0, 0, width, height)// OpenGL docs.
-        // Select the projection matrix
-        gl?.glMatrixMode(GL10.GL_PROJECTION)// OpenGL docs.
-        // Reset the projection matrix
-        gl?.glLoadIdentity()// OpenGL docs.
-        // Calculate the aspect ratio of the window
-        GLU.gluPerspective(gl, 45.0f,
-                width.toFloat() / height.toFloat(),
-                0.1f, 100.0f)
-        // Select the modelview matrix
-        gl?.glMatrixMode(GL10.GL_MODELVIEW)// OpenGL docs.
-        // Reset the modelview matrix
-        gl?.glLoadIdentity()// OpenGL docs.
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        // Set the background color to black ( rgba ).
-        gl?.glClearColor(1f, 0.0f, 0.0f, 0.5f);  // OpenGL docs.
-        // Enable Smooth Shading, default not really needed.
-        gl?.glShadeModel(GL10.GL_SMOOTH);// OpenGL docs.
-        // Depth buffer setup.
-        gl?.glClearDepthf(1.0f);// OpenGL docs.
-        // Enables depth testing.
-        gl?.glEnable(GL10.GL_DEPTH_TEST);// OpenGL docs.
-        // The type of depth testing to do.
-        gl?.glDepthFunc(GL10.GL_LEQUAL);// OpenGL docs.
-        // Really nice perspective calculations.
-        gl?.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, // OpenGL docs.
-                GL10.GL_NICEST);
+
+
+        mOESTextureId = Utils.createOESTextureObject(context)
+        mFilterEngine = FilterEngine(mOESTextureId, context)
+        mDataBuffer = mFilterEngine?.buffer
+        mShaderProgram = mFilterEngine?.shaderProgram!!
+        glGenFramebuffers(1, mFBOIds, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, mFBOIds[0])
     }
 
     override fun onDrawFrame(gl: GL10?) {
         if (mSurfaceTexture != null) {
             mSurfaceTexture?.updateTexImage()
+            mSurfaceTexture?.getTransformMatrix(transformMatrix);
         }
 
         if (!isPreviewState) {
             isPreviewState = initSurfaceTexture()
         }
 
-        gl?.glClearColor(1.0f, 0f, 0f, 0f)
-        gl?.glActiveTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES)
-        gl?.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId)
+        aPositionLocation = glGetAttribLocation(mShaderProgram, FilterEngine.POSITION_ATTRIBUTE);
+        aTextureCoordLocation = glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE);
+        uTextureMatrixLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM);
+        uTextureSamplerLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_SAMPLER_UNIFORM);
 
-        plane.draw(gl)
+        glActiveTexture(GL_TEXTURE_EXTERNAL_OES);
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId);
+        glUniform1i(uTextureSamplerLocation, 0);
+        glUniformMatrix4fv(uTextureMatrixLocation, 1, false, transformMatrix, 0);
+
+        if (mDataBuffer != null) {
+            mDataBuffer?.position(0);
+            glEnableVertexAttribArray(aPositionLocation);
+            glVertexAttribPointer(aPositionLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
+
+            mDataBuffer?.position(2);
+            glEnableVertexAttribArray(aTextureCoordLocation);
+            glVertexAttribPointer(aTextureCoordLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
+        }
+
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     }
 
     private var mOESTextureId = 0
