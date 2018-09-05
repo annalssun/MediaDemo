@@ -81,6 +81,8 @@ public class FilterEngine {
             1f, -1f, 1f, 0f
     };
 
+
+
     public static final String POSITION_ATTRIBUTE = "aPosition";
     public static final String TEXTURE_COORD_ATTRIBUTE = "aTextureCoordinate";
     public static final String TEXTURE_MATRIX_UNIFORM = "uTextureMatrix";

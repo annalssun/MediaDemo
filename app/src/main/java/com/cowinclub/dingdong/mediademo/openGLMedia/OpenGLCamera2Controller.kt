@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
+import android.view.TextureView
 import com.cowinclub.dingdong.mediademo.Came2Capture.CompareSizesByArea
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -72,7 +73,6 @@ class OpenGLCamera2Controller(private var context: Context) {
     }
 
 
-
     private val mCameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice?) {
             mCameraOpenSemaphore.release()
@@ -96,8 +96,8 @@ class OpenGLCamera2Controller(private var context: Context) {
     }
 
 
-     fun openCamera() {
-         startBackGroundThread()
+    fun openCamera() {
+        startBackGroundThread()
         val permission = ContextCompat.checkSelfPermission((context as Activity), Manifest.permission.CAMERA)
         if (permission != PackageManager.PERMISSION_GRANTED) {
             return
@@ -121,7 +121,7 @@ class OpenGLCamera2Controller(private var context: Context) {
      * @param width  The width of available size for camera preview
      * @param height The height of available size for camera preview
      */
-     fun setUpCameraOutputs(width: Int, height: Int) {
+    fun setUpCameraOutputs(width: Int, height: Int) {
         try {
             for (cameraID in mCameraManager.cameraIdList) {
                 var characteristics = mCameraManager.getCameraCharacteristics(cameraID)
@@ -148,25 +148,26 @@ class OpenGLCamera2Controller(private var context: Context) {
     }
 
 
-
     private var mPreViewRequestBuilder: CaptureRequest.Builder? = null
     private var mCameraCaptureSession: CameraCaptureSession? = null
 
     private lateinit var mSurfaceTexture: SurfaceTexture
-    fun setSurfaceTexture(surfaceTexture: SurfaceTexture){
+    fun setSurfaceTexture(surfaceTexture: SurfaceTexture) {
         this.mSurfaceTexture = surfaceTexture
     }
 
-     fun startPreview() {
+    fun startPreview(texture: TextureView, surfaceTexture: SurfaceTexture) {
         try {
 
-            mSurfaceTexture.setDefaultBufferSize(previewSize.width, previewSize.height)
-
-            val surface = Surface(mSurfaceTexture)
+            val surfaceT = texture.surfaceTexture
+            surfaceT.setDefaultBufferSize(texture.width, texture.height)
+            val surface = Surface(surfaceT)
+            var surface0 = Surface(surfaceTexture)
             mPreViewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             mPreViewRequestBuilder?.addTarget(surface)
+            mPreViewRequestBuilder?.addTarget(surface0)
 
-            mCameraDevice?.createCaptureSession(Arrays.asList(surface),
+            mCameraDevice?.createCaptureSession(Arrays.asList(surface, surface0),
                     object : CameraCaptureSession.StateCallback() {
                         override fun onConfigureFailed(session: CameraCaptureSession?) {
                         }
@@ -285,8 +286,6 @@ class OpenGLCamera2Controller(private var context: Context) {
             val recordSurface = mediaRecorder!!.surface
 
 
-
-
             val sufaces = ArrayList<Surface>().apply {
                 add(previewSurface)
                 add(recordSurface)
@@ -335,7 +334,7 @@ class OpenGLCamera2Controller(private var context: Context) {
             reset()
         }
         filePath = null
-        startPreview()
+//        startPreview()
     }
 
 

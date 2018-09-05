@@ -52,7 +52,7 @@ class CameraRender : GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
 
-        mOESTextureId = Utils.createOESTextureObject(context)
+//        mOESTextureId = Utils.createOESTextureObject()
         mFilterEngine = FilterEngine(mOESTextureId, context)
         mDataBuffer = mFilterEngine?.buffer
         mShaderProgram = mFilterEngine?.shaderProgram!!
@@ -107,7 +107,7 @@ class CameraRender : GLSurfaceView.Renderer {
         })
 
         mCameraController.setSurfaceTexture(mSurfaceTexture!!)
-        mCameraController.startPreview()
+//        mCameraController.startPreview()
         return true
     }
 
