@@ -151,8 +151,8 @@ class EglFilterEngine {
             glVertexAttribPointer(aPositionLocation, 2, GL_FLOAT, false, 0, mVerticeBuffer)
         }
 
-        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,textures[0])
         glActiveTexture(GLES20.GL_TEXTURE0)
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,textures[0])
         glUniform1f(uTextureSamplerLocation,0.toFloat())
 
         glActiveTexture(GLES20.GL_TEXTURE1)
@@ -163,7 +163,6 @@ class EglFilterEngine {
         glVertexAttribPointer(aTextureCoordLocation,4,GLES20.GL_FLOAT,false,0,mTextureBuffer)
 
         glUniformMatrix4fv(uTextureMatrixLocation, 1, false, videoTextureTransform, 0);
-
         glDrawElements(GLES20.GL_TRIANGLE_STRIP,mDrawOrderData.size,GLES20.GL_UNSIGNED_SHORT,mDrawOrderBuffer)
 
         GLES20.glDisableVertexAttribArray(textureHandle)
