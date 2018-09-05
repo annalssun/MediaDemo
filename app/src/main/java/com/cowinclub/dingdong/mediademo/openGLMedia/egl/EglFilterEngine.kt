@@ -28,7 +28,7 @@ class EglFilterEngine {
     private var aTextureCoordLocation = -1
     private var uTextureMatrixLocation = -1
     private var uTextureSamplerLocation = -1
-    private var textureHandle = -1
+//    private var textureHandle = -1
 
     private var mVerticesData = floatArrayOf(
             -1.0f, 1.0f,  // top left
@@ -139,7 +139,7 @@ class EglFilterEngine {
         aTextureCoordLocation = glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE)
         uTextureMatrixLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM)
         uTextureSamplerLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_SAMPLER_UNIFORM)
-        textureHandle = GLES20.glGetUniformLocation(mShaderProgram, "texture0"); // 获得贴图对应的纹理采样器句柄（索引）
+//        textureHandle = GLES20.glGetUniformLocation(mShaderProgram, "texture0"); // 获得贴图对应的纹理采样器句柄（索引）
 
 //        glActiveTexture(GLES20.GL_TEXTURE0)
 //        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId)
@@ -153,11 +153,12 @@ class EglFilterEngine {
 
         glActiveTexture(GLES20.GL_TEXTURE0)
         glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,textures[0])
-        glUniform1f(uTextureSamplerLocation,0.toFloat())
+        glUniform1i(uTextureSamplerLocation,0)
 
-        glActiveTexture(GLES20.GL_TEXTURE1)
-        glBindTexture(GLES20.GL_TEXTURE_2D,textures[0])
-        glUniform1f(textureHandle,1.toFloat())
+
+//        glActiveTexture(GLES20.GL_TEXTURE1)
+//        glBindTexture(GLES20.GL_TEXTURE_2D,textures[0])
+//        glUniform1f(textureHandle,1.toFloat())
 
         glEnableVertexAttribArray(aTextureCoordLocation)
         glVertexAttribPointer(aTextureCoordLocation,4,GLES20.GL_FLOAT,false,0,mTextureBuffer)
@@ -165,8 +166,8 @@ class EglFilterEngine {
         glUniformMatrix4fv(uTextureMatrixLocation, 1, false, videoTextureTransform, 0);
         glDrawElements(GLES20.GL_TRIANGLE_STRIP,mDrawOrderData.size,GLES20.GL_UNSIGNED_SHORT,mDrawOrderBuffer)
 
-        GLES20.glDisableVertexAttribArray(textureHandle)
-        GLES20.glDisableVertexAttribArray(aTextureCoordLocation)
+//        GLES20.glDisableVertexAttribArray(textureHandle)
+//        GLES20.glDisableVertexAttribArray(aTextureCoordLocation)
     }
 
     fun getShaderProgram(): Int {

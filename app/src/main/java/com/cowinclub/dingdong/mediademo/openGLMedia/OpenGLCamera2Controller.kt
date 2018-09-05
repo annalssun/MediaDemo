@@ -164,10 +164,10 @@ class OpenGLCamera2Controller(private var context: Context) {
             val surface = Surface(surfaceT)
             var surface0 = Surface(surfaceTexture)
             mPreViewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            mPreViewRequestBuilder?.addTarget(surface)
+//            mPreViewRequestBuilder?.addTarget(surface)
             mPreViewRequestBuilder?.addTarget(surface0)
 
-            mCameraDevice?.createCaptureSession(Arrays.asList(surface, surface0),
+            mCameraDevice?.createCaptureSession(Arrays.asList(surface0),
                     object : CameraCaptureSession.StateCallback() {
                         override fun onConfigureFailed(session: CameraCaptureSession?) {
                         }

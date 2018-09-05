@@ -33,8 +33,8 @@ object Utils {
 
     @JvmStatic
     fun load2Dexture(context: Context, drawableId: Int, textureId: Int) {
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        val mTextureId = textureId
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId)
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                 GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,

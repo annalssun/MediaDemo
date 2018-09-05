@@ -1,21 +1,19 @@
 package com.cowinclub.dingdong.mediademo.openGLMedia.egl
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14
+import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
-import android.os.Build
 import android.os.HandlerThread
 import android.view.Surface
-import com.cowinclub.dingdong.mediademo.R
+import com.cowinclub.dingdong.mediademo.openGLMedia.FilterEngine
 import com.cowinclub.dingdong.mediademo.openGLMedia.Utils
+import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.*
 
-
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-class EGLRender private constructor(threadName: String) : HandlerThread(threadName) {
+class EGLTextureRender private constructor(threadName: String) : HandlerThread(threadName) {
     private lateinit var mContext: Context
     private lateinit var mSurface: Surface
     private var width = 0
@@ -27,7 +25,7 @@ class EGLRender private constructor(threadName: String) : HandlerThread(threadNa
     private var mEGLConfig: EGLConfig? = null
     private var mEGLSurface: EGLSurface? = null
 
-    private lateinit var mFilterEngine: EglFilterEngine
+    //    private lateinit var mFilterEngine: EglFilterEngine
     lateinit var mSurfaceTexture: SurfaceTexture
 
     private var mTextures = IntArray(1)
@@ -35,6 +33,17 @@ class EGLRender private constructor(threadName: String) : HandlerThread(threadNa
     private var mFrameAvailable = false
 
     private var mIsRunning = false
+
+
+    private val transformMatrix = FloatArray(16)
+    private var mFilterEngine: FilterEngine? = null
+    private var mDataBuffer: FloatBuffer? = null
+    private var mShaderProgram = -1
+    private var aPositionLocation = -1
+    private var aTextureCoordLocation = -1
+    private var uTextureMatrixLocation = -1
+    private var uTextureSamplerLocation = -1
+    private val mFBOIds = IntArray(1)
 
     constructor(context: Context, surface: Surface, width: Int, height: Int) : this("EGLRenderThread") {
         this.mContext = context
@@ -115,11 +124,16 @@ class EGLRender private constructor(threadName: String) : HandlerThread(threadNa
         )
     }
 
+    private lateinit var mOESTextureId: IntArray
+
     fun initTexture() {
-        mTextures = Utils.createOESTextureObject()
-//        Utils.load2Dexture(mContext, R.drawable.text, mTextures[0])
-        mFilterEngine = EglFilterEngine(mTextures[0], mContext)
-        mSurfaceTexture = mFilterEngine.setupTextture(mTextures)
+        mOESTextureId = Utils.createOESTextureObject()
+        mFilterEngine = FilterEngine(mOESTextureId[0], mContext)
+        mDataBuffer = mFilterEngine?.buffer
+        mShaderProgram = mFilterEngine?.shaderProgram!!
+        GLES20.glGenFramebuffers(1, mFBOIds, 0)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFBOIds[0])
+        mSurfaceTexture = SurfaceTexture(mOESTextureId[0])
         mSurfaceTexture.setOnFrameAvailableListener {
             mFrameAvailable = true
         }
@@ -161,7 +175,7 @@ class EGLRender private constructor(threadName: String) : HandlerThread(threadNa
         synchronized(this) {
             if (mFrameAvailable) {
                 mSurfaceTexture.updateTexImage() // 更新SurfaceTexture纹理图像信息，然后绑定的GLES11Ext.GL_TEXTURE_EXTERNAL_OES纹理才能渲染
-                mSurfaceTexture.getTransformMatrix(mFilterEngine.videoTextureTransform) // 获取SurfaceTexture纹理变换矩
+                mSurfaceTexture.getTransformMatrix(transformMatrix) // 获取SurfaceTexture纹理变换矩
                 mFrameAvailable = false
             } else {
                 return false
@@ -172,8 +186,37 @@ class EGLRender private constructor(threadName: String) : HandlerThread(threadNa
         //GL_COLOR_BUFFER_BIT 设置窗口颜色
         //GL_DEPTH_BUFFER_BIT 设置深度缓存--把所有像素的深度值设置为最大值(一般为远裁剪面)
         GLES20.glViewport(0, 0, width, height)
-        mFilterEngine.drawTexture()
+        drawFrame()
         return true
+    }
+
+
+    fun drawFrame() {
+
+        aPositionLocation = GLES20.glGetAttribLocation(mShaderProgram, FilterEngine.POSITION_ATTRIBUTE);
+        aTextureCoordLocation = GLES20.glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE);
+        uTextureMatrixLocation = GLES20.glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM);
+        uTextureSamplerLocation = GLES20.glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_SAMPLER_UNIFORM);
+
+        GLES20.glActiveTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId[0]);
+        GLES20.glUniform1i(uTextureSamplerLocation, 0);
+        GLES20.glUniformMatrix4fv(uTextureMatrixLocation, 1, false, transformMatrix, 0);
+
+        if (mDataBuffer != null) {
+            mDataBuffer?.position(0);
+            GLES20.glEnableVertexAttribArray(aPositionLocation);
+            GLES20.glVertexAttribPointer(aPositionLocation, 2, GLES20.GL_FLOAT, false, 16, mDataBuffer);
+
+            mDataBuffer?.position(2);
+            GLES20.glEnableVertexAttribArray(aTextureCoordLocation);
+            GLES20.glVertexAttribPointer(aTextureCoordLocation, 2, GLES20.GL_FLOAT, false, 16, mDataBuffer);
+        }
+
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
     }
 
     private inline fun <reified T> Array(size: Int): Array<T?> {

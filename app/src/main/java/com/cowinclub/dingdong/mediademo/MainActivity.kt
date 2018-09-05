@@ -13,6 +13,7 @@ import com.cowinclub.dingdong.mediademo.Media.WindEar
 import com.cowinclub.dingdong.mediademo.openGLMedia.CameraGLSurfaceView
 import com.cowinclub.dingdong.mediademo.openGLMedia.OpenGLCamera2Controller
 import com.cowinclub.dingdong.mediademo.openGLMedia.egl.EGLRender
+import com.cowinclub.dingdong.mediademo.openGLMedia.egl.EGLTextureRender
 import com.cowinclub.dingdong.mediademo.openGLMedia.egl.EncodeRecordController
 import com.cowinclub.dingdong.mediademo.video.VideoRecordController
 
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private lateinit var cameraController: OpenGLCamera2Controller
 
     private lateinit var textureView: TextureView
-    private lateinit var render: EGLRender
+    private lateinit var render: EGLTextureRender
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -53,10 +54,11 @@ class MainActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         setContentView(R.layout.activity_main)
 
         var controller = EncodeRecordController(dm.widthPixels, dm.heightPixels)
-        render = EGLRender(this, controller.mEncoderSurface, dm.widthPixels, dm.heightPixels)
+        render = EGLTextureRender(this, controller.mEncoderSurface, dm.widthPixels, dm.heightPixels)
 
 //        render.start()
         render.start()
+
         cameraController = OpenGLCamera2Controller(this)
         cameraController.setUpCameraOutputs(dm.widthPixels, dm.heightPixels)
 
