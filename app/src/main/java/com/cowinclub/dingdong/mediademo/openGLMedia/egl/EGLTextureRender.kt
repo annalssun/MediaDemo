@@ -6,14 +6,19 @@ import android.opengl.EGL14
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
+import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.Surface
+import com.cowinclub.dingdong.mediademo.MainActivity
 import com.cowinclub.dingdong.mediademo.openGLMedia.FilterEngine
 import com.cowinclub.dingdong.mediademo.openGLMedia.Utils
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.*
 
 class EGLTextureRender private constructor(threadName: String) : HandlerThread(threadName) {
+
+
     private lateinit var mContext: Context
     private lateinit var mSurface: Surface
     private var width = 0
@@ -45,14 +50,16 @@ class EGLTextureRender private constructor(threadName: String) : HandlerThread(t
     private var uTextureSamplerLocation = -1
     private val mFBOIds = IntArray(1)
 
-    constructor(context: Context, surface: Surface, width: Int, height: Int) : this("EGLRenderThread") {
+    private lateinit var handler: Handler
+
+    constructor(context: Context, handler: Handler, surface: Surface, width: Int, height: Int) : this("EGLRenderThread") {
         this.mContext = context
         this.mSurface = surface
         this.width = width
         this.height = height
+        this.handler = handler
         mIsRunning = true
-//        setUpEGL()
-//        initTexture()
+
     }
 
     fun setUpEGL() {
@@ -124,20 +131,37 @@ class EGLTextureRender private constructor(threadName: String) : HandlerThread(t
         )
     }
 
-    private lateinit var mOESTextureId: IntArray
+    private var mOESTextureId = IntArray(2)
 
     fun initTexture() {
+
         mOESTextureId = Utils.createOESTextureObject()
+
         mFilterEngine = FilterEngine(mOESTextureId[0], mContext)
         mDataBuffer = mFilterEngine?.buffer
         mShaderProgram = mFilterEngine?.shaderProgram!!
         GLES20.glGenFramebuffers(1, mFBOIds, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFBOIds[0])
-        mSurfaceTexture = SurfaceTexture(mOESTextureId[0])
-        mSurfaceTexture.setOnFrameAvailableListener {
-            mFrameAvailable = true
+        try {
+            mSurfaceTexture = SurfaceTexture(mOESTextureId[0])
+            mSurfaceTexture.setOnFrameAvailableListener {
+                synchronized (this){
+                    mFrameAvailable = true
+                Log.v("ttt","==================================tt")
+                }
+            }
+
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+
+
+
+
+
     }
+
 
     fun distroyEGL() {
         mEGL?.eglMakeCurrent(mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, mEGLContext)
@@ -147,13 +171,17 @@ class EGLTextureRender private constructor(threadName: String) : HandlerThread(t
     }
 
 //    override fun start() {
+//        initTexture()
 //        super.start()
-//        run()
 //    }
 
     override fun run() {
         setUpEGL()
+//        initFilter()
         initTexture()
+        handler.post {
+            (mContext as MainActivity).startPreView()
+        }
         while (mIsRunning) {
             if (draw()) {
                 //EGL交换缓存区，实现双缓存交换并刷新显示缓存（由底层的FramebufferNativeWindow输出--FramebufferNativeWindo是ANativeWindow的继承类，其内部实现了queuebuffer dequeuebuffer等操作）

@@ -12,8 +12,8 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class EncodeRecordController : MediaCodec.Callback {
+@TargetApi(Build.VERSION_CODES.M)
+class EncodeRecordController:MediaCodec.Callback{
 
 
     private var mWidth = 0
@@ -21,6 +21,7 @@ class EncodeRecordController : MediaCodec.Callback {
     private var mCodec: MediaCodec? = null
     private var mOutputStream: BufferedOutputStream? = null
     private var mMuxer: MediaMuxer? = null
+    private lateinit var mThread:Thread
 
     lateinit var mEncoderSurface: Surface
     private var path = Environment.getExternalStorageDirectory().absolutePath + "/mcodecv26.264"
@@ -32,9 +33,11 @@ class EncodeRecordController : MediaCodec.Callback {
         setUpController()
     }
 
+
+
     fun setUpController() {
 
-        createFile()
+//        createFile()
 
         try {
             mCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
@@ -58,6 +61,10 @@ class EncodeRecordController : MediaCodec.Callback {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun setInputSurface(surface: Surface) {
+        mCodec?.setInputSurface(surface)
     }
 
 

@@ -114,7 +114,8 @@ class OpenGLCamera2Controller(private var context: Context) {
     }
 
     private lateinit var videoSize: Size
-
+    private var mWidth = 0
+    private var mHeight = 0
     /**
      * Sets up member variables related to camera.
      *
@@ -122,6 +123,9 @@ class OpenGLCamera2Controller(private var context: Context) {
      * @param height The height of available size for camera preview
      */
     fun setUpCameraOutputs(width: Int, height: Int) {
+
+        this.mWidth = width
+        this.mHeight = height
         try {
             for (cameraID in mCameraManager.cameraIdList) {
                 var characteristics = mCameraManager.getCameraCharacteristics(cameraID)
@@ -162,10 +166,13 @@ class OpenGLCamera2Controller(private var context: Context) {
             val surfaceT = texture.surfaceTexture
             surfaceT.setDefaultBufferSize(texture.width, texture.height)
             val surface = Surface(surfaceT)
-            var surface0 = Surface(surfaceTexture)
+
+            surfaceTexture.setDefaultBufferSize(mWidth, mHeight)
+            val surface0 = Surface(surfaceTexture)
             mPreViewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-//            mPreViewRequestBuilder?.addTarget(surface)
             mPreViewRequestBuilder?.addTarget(surface0)
+//            mPreViewRequestBuilder?.addTarget(surface)
+
 
             mCameraDevice?.createCaptureSession(Arrays.asList(surface0),
                     object : CameraCaptureSession.StateCallback() {
