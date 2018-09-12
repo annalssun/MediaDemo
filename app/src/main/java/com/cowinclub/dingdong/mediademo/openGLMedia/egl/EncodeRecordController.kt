@@ -13,7 +13,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 @TargetApi(Build.VERSION_CODES.M)
-class EncodeRecordController:MediaCodec.Callback{
+class EncodeRecordController : MediaCodec.Callback {
 
 
     private var mWidth = 0
@@ -21,9 +21,11 @@ class EncodeRecordController:MediaCodec.Callback{
     private var mCodec: MediaCodec? = null
     private var mOutputStream: BufferedOutputStream? = null
     private var mMuxer: MediaMuxer? = null
-    private lateinit var mThread:Thread
-
+    private lateinit var mThread: Thread
     lateinit var mEncoderSurface: Surface
+
+    private var isRecording = false
+
     private var path = Environment.getExternalStorageDirectory().absolutePath + "/mcodecv26.264"
     private var mOutputPath = Environment.getExternalStorageDirectory().absolutePath + "/mcodecmux26.mp4"
 
@@ -34,10 +36,9 @@ class EncodeRecordController:MediaCodec.Callback{
     }
 
 
-
     fun setUpController() {
 
-//        createFile()
+        createFile()
 
         try {
             mCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
@@ -55,7 +56,8 @@ class EncodeRecordController:MediaCodec.Callback{
         mCodec?.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mEncoderSurface = mCodec?.createInputSurface()!!
         mCodec?.setCallback(this)
-
+        mCodec?.start()
+        isRecording = true
         try {
             mMuxer = MediaMuxer(mOutputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         } catch (e: Exception) {
@@ -64,6 +66,8 @@ class EncodeRecordController:MediaCodec.Callback{
     }
 
     fun setInputSurface(surface: Surface) {
+
+        var pSurface = MediaCodec.createPersistentInputSurface()
         mCodec?.setInputSurface(surface)
     }
 
@@ -146,11 +150,13 @@ class EncodeRecordController:MediaCodec.Callback{
     }
 
     fun stopCode() {
-        mCodec?.stop()
-        mCodec?.release()
+        if (isRecording) {
+            mCodec?.stop()
+            mCodec?.release()
 
-        mMuxer?.stop()
-        mMuxer?.release()
+            mMuxer?.stop()
+            mMuxer?.release()
+        }
     }
 
     fun stopDistroy() {

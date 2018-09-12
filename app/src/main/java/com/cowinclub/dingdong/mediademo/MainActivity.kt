@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private lateinit var camera2Controller: CaptureCamera2Controller
     private lateinit var videoRecordController: VideoRecordController
     private lateinit var cameraController: OpenGLCamera2Controller
-    private var handler:Handler = Handler(Looper.getMainLooper())
+    private var handler: Handler = Handler(Looper.getMainLooper())
 
     private lateinit var textureView: TextureView
     private lateinit var render: EGLTextureRender
@@ -54,23 +54,18 @@ class MainActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         cameraController = OpenGLCamera2Controller(this)
         cameraController.setUpCameraOutputs(dm.widthPixels, dm.heightPixels)
 
+        findViewById<Button>(R.id.start_btn).setOnClickListener{
+            controller.startCode()
+        }
+        findViewById<Button>(R.id.end_btn).setOnClickListener{
+            controller.stopCode()
+        }
 
-
-
-//        findViewById<Button>(R.id.start_btn).setOnClickListener {
-//
-//        }
-//
-//        findViewById<Button>(R.id.end_btn).setOnClickListener {
-//
-//        }
     }
 
-    fun startPreView(){
-//        textureView.surfaceTexture = render.mSurfaceTexture
-        cameraController.startPreview(textureView, render.mSurfaceTexture)
+    fun startPreView() {
+//        cameraController.startPreview(render.mSurfaceTexture)
     }
-
 
 
     private fun testP() {
@@ -122,12 +117,11 @@ class MainActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     }
 
 
-
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.i("OPENGL", "========================================onSurfaceTextureAvailable")
-        render = EGLTextureRender(MainActivity@this,handler, controller.mEncoderSurface , dm.widthPixels, dm.heightPixels)
-        render.start()
-
+//        render = EGLTextureRender(MainActivity@ this, handler, textureView, dm.widthPixels, dm.heightPixels)
+//        render.start()
+//
+//        controller.setInputSurface(Surface(surface))
     }
 
 }

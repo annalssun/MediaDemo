@@ -15,7 +15,6 @@ import android.support.v4.content.ContextCompat
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
-import android.view.TextureView
 import com.cowinclub.dingdong.mediademo.Came2Capture.CompareSizesByArea
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -160,21 +159,20 @@ class OpenGLCamera2Controller(private var context: Context) {
         this.mSurfaceTexture = surfaceTexture
     }
 
-    fun startPreview(texture: TextureView, surfaceTexture: SurfaceTexture) {
+    fun startPreview(surface: Surface,surfaceTexture: SurfaceTexture) {
         try {
-
-            val surfaceT = texture.surfaceTexture
-            surfaceT.setDefaultBufferSize(texture.width, texture.height)
-            val surface = Surface(surfaceT)
 
             surfaceTexture.setDefaultBufferSize(mWidth, mHeight)
             val surface0 = Surface(surfaceTexture)
+
+            mSurfaceTexture.setDefaultBufferSize(mWidth, mHeight)
+            var surface1 = Surface(mSurfaceTexture)
             mPreViewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             mPreViewRequestBuilder?.addTarget(surface0)
-//            mPreViewRequestBuilder?.addTarget(surface)
+            mPreViewRequestBuilder?.addTarget(surface1)
 
 
-            mCameraDevice?.createCaptureSession(Arrays.asList(surface0),
+            mCameraDevice?.createCaptureSession(Arrays.asList(surface0,surface1),
                     object : CameraCaptureSession.StateCallback() {
                         override fun onConfigureFailed(session: CameraCaptureSession?) {
                         }
